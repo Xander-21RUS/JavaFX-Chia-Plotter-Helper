@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import java.lang.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<ScrollPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="478.0" prefWidth="616.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1">
+  <content>
+    <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="476.0" prefWidth="613.0">
+         <children>
+            <ChoiceBox fx:id="plotSizeChoiceBox" layoutX="21.0" layoutY="24.0" prefWidth="150.0" />
+            <Label fx:id="plotSizeLabel" layoutX="178.0" layoutY="29.0" text="Plot size" />
+            <ChoiceBox fx:id="bucketsChoiceBox" layoutX="21.0" layoutY="72.0" prefWidth="150.0" />
+            <Label fx:id="bucketsLabel" layoutX="177.0" layoutY="77.0" text="Number of buckets" />
+            <TextField fx:id="memoryTextField" layoutX="21.0" layoutY="120.0" prefHeight="27.0" prefWidth="151.0" promptText="Memory " />
+            <Label fx:id="memoryLabel" layoutX="180.0" layoutY="125.0" text="RAM max usage" />
+            <ChoiceBox fx:id="threadsChoiceBox" layoutX="21.0" layoutY="170.0" prefWidth="150.0" />
+            <Label fx:id="threadsLabel" layoutX="178.0" layoutY="175.0" text="Number of threads" />
+            <Label fx:id="temporaryDirLabel" layoutX="21.0" layoutY="214.0" text="Temporary directory:" />
+            <TextField fx:id="temporaryDirTextField" layoutX="21.0" layoutY="239.0" prefHeight="27.0" prefWidth="480.0" promptText="Temporary directory" />
+            <Button fx:id="tempDirBrowseButton" layoutX="511.0" layoutY="239.0" mnemonicParsing="false" text="Browse" />
+            <CheckBox fx:id="secondTmpDirCheckBox" layoutX="21.0" layoutY="280.0" mnemonicParsing="false" text="Use 2nd temporary directory" />
+            <TextField fx:id="secondTmpDirTextField" disable="true" layoutX="21.0" layoutY="305.0" prefHeight="27.0" prefWidth="480.0" promptText="Second temporary directory" />
+            <Button fx:id="secondDirBrowseButton" disable="true" layoutX="511.0" layoutY="305.0" mnemonicParsing="false" text="Browse" />
+            <Label fx:id="finalDirLabel" layoutX="21.0" layoutY="345.0" text="Final directory:" />
+            <TextField fx:id="finalDirTextField" layoutX="21.0" layoutY="369.0" prefHeight="27.0" prefWidth="480.0" promptText="Final directory" />
+            <Button fx:id="finalDirBrowseButton" layoutX="511.0" layoutY="369.0" mnemonicParsing="false" text="Browse" />
+            <Button fx:id="cancelButton" cancelButton="true" layoutX="234.0" layoutY="424.0" mnemonicParsing="false" text="Cancel" />
+            <Button fx:id="createButton" defaultButton="true" layoutX="305.0" layoutY="424.0" mnemonicParsing="false" prefHeight="27.0" prefWidth="74.0" text="Create" />
+         </children></AnchorPane>
+  </content>
+</ScrollPane>

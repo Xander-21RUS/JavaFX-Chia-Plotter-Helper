@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import java.lang.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<ScrollPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="511.0" prefWidth="724.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="ru.xander.JavaFxChiaPlotterHelper.Controllers.MainWindowController">
+  <content>
+    <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="504.0" prefWidth="720.0">
+         <children>
+            <ListView fx:id="plotsListView" layoutX="10.0" layoutY="69.0" prefHeight="416.0" prefWidth="700.0" />
+            <Button fx:id="settingsButton" layoutX="14.0" layoutY="21.0" mnemonicParsing="false" prefHeight="27.0" prefWidth="80.0" text="Settings" />
+            <Button fx:id="addPlotButton" layoutX="632.0" layoutY="21.0" mnemonicParsing="false" text="Add a plot" />
+         </children></AnchorPane>
+  </content>
+</ScrollPane>

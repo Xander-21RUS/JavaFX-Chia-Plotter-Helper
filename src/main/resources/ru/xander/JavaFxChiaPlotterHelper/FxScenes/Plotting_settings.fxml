@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.text.*?>
+<?import java.lang.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<ScrollPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="439.0" prefWidth="722.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1">
+  <content>
+    <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="435.0" prefWidth="720.0">
+         <children>
+            <Label fx:id="chiaFileLabel" layoutX="14.0" layoutY="14.0" text="Chia CLI executable file:" />
+            <TextField fx:id="chiaFileTextField" layoutX="14.0" layoutY="31.0" prefHeight="27.0" prefWidth="620.0" />
+            <Button fx:id="chiaFileBrowseButton" layoutX="645.0" layoutY="31.0" mnemonicParsing="false" text="Browse" />
+            <Button fx:id="chiaFileCheckButton" defaultButton="true" layoutX="14.0" layoutY="69.0" mnemonicParsing="false" text="Check And Lock" />
+            <Button fx:id="chiaFileAutoDetectButton" layoutX="134.0" layoutY="69.0" mnemonicParsing="false" text="Auto detect" />
+            <Button fx:id="chiaFileClearButton" layoutX="229.0" layoutY="69.0" mnemonicParsing="false" text="Clear" />
+            <Label fx:id="chiaFileVersionLabel" layoutX="301.0" layoutY="74.0" prefHeight="17.0" prefWidth="329.0" />
+            <Label fx:id="keysTitleLabel" layoutX="14.0" layoutY="134.0" text="Keys">
+               <font>
+                  <Font size="22.0" />
+               </font>
+            </Label>
+            <Button fx:id="selectKeysButton" layoutX="80.0" layoutY="135.0" mnemonicParsing="false" text="Select keys" />
+            <Label fx:id="fingerPrintLabel" layoutX="14.0" layoutY="177.0" text="Fingerprint:" />
+            <TextField fx:id="fingerPrintTextField" layoutX="14.0" layoutY="201.0" />
+            <Label fx:id="farmerPublicKeyLabel" layoutX="14.0" layoutY="240.0" text="Farmer public key:" />
+            <TextField fx:id="farmerPublicKeyTextField" layoutX="14.0" layoutY="266.0" prefHeight="27.0" prefWidth="690.0">
+               <font>
+                  <Font size="12.0" />
+               </font>
+            </TextField>
+            <Label fx:id="poolPublicKeyLabel" layoutX="14.0" layoutY="302.0" text="Pool public key:" />
+            <TextField fx:id="poolPublicKeyTextField" layoutX="14.0" layoutY="327.0" prefHeight="27.0" prefWidth="690.0">
+               <font>
+                  <Font size="12.0" />
+               </font>
+            </TextField>
+            <Button fx:id="cancelButton" cancelButton="true" layoutX="564.0" layoutY="381.0" mnemonicParsing="false" text="Cancel" />
+            <Button fx:id="doneButton" defaultButton="true" layoutX="634.0" layoutY="381.0" mnemonicParsing="false" prefHeight="27.0" prefWidth="64.0" text="Done" />
+         </children></AnchorPane>
+  </content>
+</ScrollPane>

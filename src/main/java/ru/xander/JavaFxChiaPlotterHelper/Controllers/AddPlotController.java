@@ -26,6 +26,10 @@ import java.util.function.UnaryOperator;
 public class AddPlotController {
 
     private AppSettings mainAppSettings;
+    private final int minimumRamUsage=512;
+    private final int maximumRamUsage=Integer.MAX_VALUE;
+    private final int minimumThreads=1;
+    private final int maximumThreads=128;
 
 
     private ChoiceBox<String> plotSizeChoiceBox;
@@ -192,44 +196,228 @@ public class AddPlotController {
         createButton.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent event) {
-                checkTemporaryPath();
+                if(!checkTemporaryPathAndShowAlert()){
+                    return;
+                }
+                boolean secondTemporary=secondTmpDirCheckBox.isSelected();
+                if(secondTemporary){
+                    if(!checkSecondTemporaryPathAndShowAlert()){
+                        return;
+                    }
+                }
+                if(!checkFinalPathAndShowAlert()){
+                    return;
+                }
+
+                int plotSize=getPlotSize();
+                int buckets=getNumberOfBuckets();
+                int memoryUsage=getMemoryMaxUsage();
+                int threads=getNumberOfThreads();
+
+                String temporaryPath=getTemporaryPath();
+                boolean useSecondTemporary=getUseSecondTemporary();
+                String secondTemporaryPath=getSecondTemporaryPath();
+                String finalPath=getFinalPath();
+
+                
+
+
+
             }
         });
 
 
 
+
+
+
+
     }
 
 
-    private void checkTemporaryPath(){
+    private boolean checkTemporaryPathAndShowAlert(){
         String temporaryPath=temporaryDirTextField.getText();
-        if(temporaryPath==null){
-            temporaryPath="";
+        return checkDirectoryPathAndShowAlert(temporaryPath,"Temporary");
+    }
+
+    private boolean checkSecondTemporaryPathAndShowAlert(){
+        String secondTemporaryPath=secondTmpDirTextField.getText();
+        return checkDirectoryPathAndShowAlert(secondTemporaryPath,"2nd temporary");
+    }
+
+    private boolean checkFinalPathAndShowAlert(){
+        String finalPath=finalDirTextField.getText();
+        return checkDirectoryPathAndShowAlert(finalPath,"Final");
+    }
+
+    private boolean checkDirectoryPathAndShowAlert(String path,String dirName){
+        if(path==null){
+            path="";
         }
-        Path path= Paths.get(temporaryPath);
         Alert alert = new Alert(Alert.AlertType.WARNING);
         alert.setTitle("Warning");
         alert.setHeaderText("Please check temporary path");
 
-        File file=new File(temporaryPath);
-        if(!Files.exists(path)){
-            alert.setContentText("Path does not exist");
+        File file=new File(path);
+
+        if(!file.exists()){
+            alert.setContentText( dirName + " path does not exist");
             alert.showAndWait();
-            return;
+            return false;
         }
 
-        if(!Files.isDirectory(path)){
-            alert.setContentText("Temporary path is not directory");
+        if(!file.isDirectory()){
+            alert.setContentText(dirName + " path is not directory");
             alert.showAndWait();
-            return;
+            return false;
         }
 
-        if(!Files.isWritable(path)){
-            alert.setContentText("Directory can't be written");
+        if(!file.canWrite()){
+            alert.setContentText(dirName+" directory can't be written");
             alert.showAndWait();
-            return;
+            return false;
         }
 
+        return true;
     }
+
+
+    private int getPlotSize(){
+
+
+       int index=plotSizeChoiceBox.getSelectionModel().getSelectedIndex();
+       if(index<0) throw new IllegalStateException();
+       int plotSize= 32 + index;
+        return plotSize;
+    }
+
+    private int getNumberOfBuckets(){
+        int index= bucketsChoiceBox.getSelectionModel().getSelectedIndex();
+        if(index<0) throw new IllegalStateException();
+        int buckets= (int) Math.pow(2,(4 + index) );
+        return buckets;
+    }
+
+    private int getMemoryMaxUsage(){
+        String memoryString= memoryTextField.getText();
+        int memory=Integer.parseUnsignedInt(memoryString);
+        return memory;
+    }
+
+    private int getNumberOfThreads(){
+        String threadsString= threadsChoiceBox.getValue();
+        int threads=Integer.parseUnsignedInt(threadsString);
+        return threads;
+    }
+
+    private String getTemporaryPath(){
+        String temporaryPath=temporaryDirTextField.getText();
+        if(temporaryPath==null){
+            temporaryPath="";
+        }
+        return temporaryPath;
+    }
+
+
+    private boolean getUseSecondTemporary(){
+        return secondTmpDirCheckBox.isSelected();
+    }
+
+    private String getSecondTemporaryPath(){
+        String secondTemporaryPath= secondTmpDirTextField.getText();
+        if(secondTemporaryPath==null){
+            secondTemporaryPath="";
+        }
+        return secondTemporaryPath;
+    }
+
+    private String getFinalPath(){
+        String finalPath = finalDirTextField.getText();
+        if(finalPath==null){
+            finalPath="";
+        }
+        return finalPath;
+    }
+
+    private boolean isSecondPathActive(){
+        return secondTmpDirCheckBox.isSelected();
+    }
+
+    private void setPlotSize(int plotSize){
+        if(plotSize<32 || plotSize>35){
+            throw new IllegalArgumentException();
+        }
+        int index=plotSize-32;
+        plotSizeChoiceBox.getSelectionModel().select(index);
+    }
+
+    private void setNumberOfBuckets(int numberOfBuckets){
+        if(numberOfBuckets <16 || 256 >numberOfBuckets){
+            throw new IllegalArgumentException();
+        }
+
+        double log2= Math.log(numberOfBuckets)/Math.log(2);
+        if (log2 % 1 == 0) {
+            //целое
+
+        }else {
+            //не целое
+            throw new IllegalArgumentException();
+        }
+
+        int bucketExp= (int) log2;
+        // должно получится от 4 до 8
+        if(bucketExp<4 || 8<bucketExp){
+            throw new IllegalStateException();
+        }
+
+        int index=bucketExp-4;
+
+        bucketsChoiceBox.getSelectionModel().select(index);
+    }
+
+    private void setRamMaxUsage(int ramMaxUsage){
+        if(ramMaxUsage<minimumRamUsage){
+            throw new IllegalArgumentException();
+        }
+        memoryTextField.setText(Integer.toString(ramMaxUsage));
+    }
+
+    private void setNumberOfThreads(int threads){
+        if(threads<minimumThreads){
+            throw new IllegalArgumentException();
+        }
+        if(threads>maximumThreads){
+            throw new IllegalArgumentException();
+        }
+        int index=threads-1;
+        threadsChoiceBox.getSelectionModel().select(index);
+    }
+
+    private void setTemporaryDirectory(String directoryPath){
+        if(directoryPath==null){
+            directoryPath="";
+        }
+        temporaryDirTextField.setText(directoryPath);
+    }
+
+    private void setUseSecondTemporary(boolean secondTemporary){
+        secondTmpDirCheckBox.setSelected(secondTemporary);
+    }
+
+    private void setSecondTemporaryPath(String secondTemporaryPath){
+        if(secondTemporaryPath==null){
+            secondTemporaryPath="";
+        }
+        secondTmpDirTextField.setText(secondTemporaryPath);
+    }
+
+    private void setFinalPath(String finalPath){
+        if(finalPath==null){
+            finalPath="";
+        }
+        finalDirTextField.setText(finalPath);
+    }
+
 
 }

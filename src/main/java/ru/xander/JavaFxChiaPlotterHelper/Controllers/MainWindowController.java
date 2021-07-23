@@ -1,5 +1,7 @@
 package ru.xander.JavaFxChiaPlotterHelper.Controllers;
 //ru.xander.JavaFxChiaPlotterHelper.Controllers.MainWindowController
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
@@ -7,8 +9,11 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
+import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
 import javafx.stage.Stage;
+import javafx.util.Callback;
+import ru.xander.JavaFxChiaPlotterHelper.Controllers.ListView.PlotTaskCell;
 import ru.xander.JavaFxChiaPlotterHelper.Helpers.AppSettings;
 
 import java.io.IOException;
@@ -23,7 +28,7 @@ public class MainWindowController {
     @FXML
     private Button addPlotButton;
     @FXML
-    private ListView<?> plotsListView;
+    private ListView<PlotTaskCell> plotsListView;
 
     private SettingsController settingsController;
     private AddPlotController addPlotController;
@@ -52,7 +57,7 @@ public class MainWindowController {
 
         settingsButton=(Button) scene.lookup("#settingsButton");
         addPlotButton=(Button) scene.lookup("#addPlotButton");
-        plotsListView=(ListView<?>) scene.lookup("#plotsListView");
+        plotsListView=(ListView<PlotTaskCell>) scene.lookup("#plotsListView");
 
 
         Stage finalPrimaryStage = primaryStage;
@@ -83,6 +88,16 @@ public class MainWindowController {
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
+            }
+        });
+
+        ObservableList<PlotTaskCell> list = FXCollections.observableArrayList(new PlotTaskCell(),new PlotTaskCell());
+
+        plotsListView.setItems(list);
+        plotsListView.setCellFactory(new Callback<ListView<PlotTaskCell>, ListCell<PlotTaskCell>>() {
+            @Override
+            public ListCell<PlotTaskCell> call(ListView<PlotTaskCell> param) {
+                return new PlotTaskCell();
             }
         });
 

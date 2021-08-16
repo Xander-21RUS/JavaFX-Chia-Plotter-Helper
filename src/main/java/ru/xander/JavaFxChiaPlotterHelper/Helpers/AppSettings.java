@@ -5,9 +5,19 @@ import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.prefs.Preferences;
 
 public class AppSettings {
+
+
+    public static final int FINGERPRINT_INDEX=0;
+    public static final int MASTER_KEY_INDEX=1;
+    public static final int FARMER_KEY_INDEX=2;
+    public static final int POOL_KEY_INDEX=3;
+    public static final int FIRST_WALLET_INDEX=4;
 
     private final String CHIA_CLI_FILE_PATH = "ChiaCliFilePath";
     private final String CHIA_CLI_VERSION = "ChiaCliVersion";
@@ -18,8 +28,16 @@ public class AppSettings {
     public String chiaCliFilePath=null;
     public String detectedChiaVersion=null;
     public String fingerprint=null;
-    public String farmerPublicKey=null;
-    public String poolPublicKey=null;
+    public String farmerPublicKey=null; // уже не используется, надо избавится со временем от этой
+    public String poolPublicKey=null; // уже не используется, надо избавится со временем от этой
+
+    private String unusualResponseErrorText="seems chia command \"keys show\" response is changed";
+    private String[] containsKeyNames = new String[]{"Fingerprint","Master public key","Farmer public key","Pool public key","First wallet address"};
+    public final List<String[]> keysArrayList=new ArrayList<>();
+
+
+
+
 
 
     public AppSettings(){}
@@ -42,6 +60,13 @@ public class AppSettings {
         if(toCopy.poolPublicKey!=null){
             this.poolPublicKey=new String(toCopy.poolPublicKey);
         }
+        //this.keysArrayList.clear();
+        int listLength=toCopy.keysArrayList.size();
+        for(int index=0; listLength>index;index+=1){
+            String[] keysArray= Arrays.copyOf(toCopy.keysArrayList.get(index),this.containsKeyNames.length);
+            this.keysArrayList.add(keysArray);
+        }
+
     }
 
 
@@ -67,13 +92,13 @@ public class AppSettings {
     }
 
 
-    public String applySettings(AppSettings newDataAppSettings){
+    public void applySettings(AppSettings newDataAppSettings){
         if(newDataAppSettings==null){
             throw new IllegalArgumentException();
         }
         String checkChiaFilePath=checkChiaCliFile(newDataAppSettings.chiaCliFilePath);
         if(checkChiaFilePath!=null){
-            return checkChiaFilePath;
+            throw new IllegalArgumentException(checkChiaFilePath);
         }
         if(newDataAppSettings.detectedChiaVersion==null){
             throw new IllegalArgumentException();
@@ -81,12 +106,12 @@ public class AppSettings {
 
         String checkFarmerKey=checkFarmerPublicKey(newDataAppSettings.farmerPublicKey);
         if(checkFarmerKey!=null){
-            return checkFarmerKey;
+            throw new IllegalArgumentException(checkFarmerKey);
         }
 
         String checkPoolKey=checkPoolPublicKey(newDataAppSettings.poolPublicKey);
         if(checkPoolKey!=null){
-            return checkPoolKey;
+            throw new IllegalArgumentException(checkPoolKey);
         }
 
         this.chiaCliFilePath= newDataAppSettings.chiaCliFilePath;
@@ -94,8 +119,13 @@ public class AppSettings {
         this.fingerprint=newDataAppSettings.fingerprint;
         this.farmerPublicKey= newDataAppSettings.farmerPublicKey;
         this.poolPublicKey= newDataAppSettings.poolPublicKey;
+        this.keysArrayList.clear();
+        int listLength=newDataAppSettings.keysArrayList.size();
+        for(int index=0; listLength>index;index+=1){
+            String[] keysArray= Arrays.copyOf(newDataAppSettings.keysArrayList.get(index),this.containsKeyNames.length);
+            this.keysArrayList.add(keysArray);
+        }
 
-        return null;
     }
 
     public String checkChiaCliFile(String chiaCliFilePath){
@@ -178,8 +208,122 @@ public class AppSettings {
         return null;
     }
 
+
+    public void updateFingerprintAndKeys(){
+        List<String[]> tmpKeysList=getFingerprintsAndKeys(this.chiaCliFilePath);
+
+        keysArrayList.clear();
+        int listLength=tmpKeysList.size();
+        for(int index=0; listLength>index;index+=1){
+            String[] keysArray= Arrays.copyOf(tmpKeysList.get(index),this.containsKeyNames.length);
+            this.keysArrayList.add(keysArray);
+        }
+    }
+
+    private List<String[]> getFingerprintsAndKeys(String chiaCliFilePath){
+
+        if(chiaCliFilePath==null){
+            throw new IllegalArgumentException();
+        }
+        File file=new File(chiaCliFilePath);
+
+        if(!file.exists()){
+            throw new IllegalStateException("Wrong path! File is not exist.");
+        }
+
+        //region /Проверяем явлеется ли фаил исполняемым, если нет выходим/
+        if(!file.canExecute()){
+            throw new IllegalStateException("File is not executable");
+        }
+        //endregion
+
+        //region /Проверяем, является ли фаил Chia фаилом, сам фаил при этом запускается и проверяется его текстовый ответ, если не тот фаил (не тот ответ) то выходим/
+        String command=file.getAbsolutePath() + " keys show";
+
+        final String[] introText = {"Showing all public keys derived from your private keys:"};
+        final List<String[]> keysArrayList=new ArrayList<>();
+        final int[] keyCount=new int[]{0};
+        CliThreadInputHandler inputHandler=new CliThreadInputHandler() {
+            @Override
+            public void handleStreamInput(String readLine) {
+                if(readLine!=null){
+                    if(introText[0] !=null){
+                        if(!readLine.contains(introText[0])){
+                            throw new IllegalStateException(unusualResponseErrorText);
+                        }else {
+                            introText[0] =null;
+                        }
+                    }
+
+                    if(readLine.contains("Fingerprint")){
+                        keyCount[0]=1;
+                        String[] keyArray=new String[5];
+                        String[] result = readLine.split(":");
+                        if(result.length!=2){
+                            throw new IllegalStateException();
+                        }
+                        String keyValue=result[1].trim();
+                        keyArray[0]=keyValue;
+                        keysArrayList.add(keyArray);
+                        return;
+
+                    }else {
+
+                        if(readLine.length()==0){
+                            return;
+                        }
+
+                        if(containsKeyNames.length<=keyCount[0]){
+                            throw new IllegalStateException(unusualResponseErrorText);
+                        }
+                        int size= keysArrayList.size();
+                        if(size==0){
+                            return;
+                        }
+                        String[] keysArray=keysArrayList.get(size-1);
+                        if(keysArray[keyCount[0]]!=null)
+                        {throw new IllegalStateException();}
+                        if(readLine.contains(containsKeyNames[keyCount[0]])){
+                            //все хорошо, имя ключа совпали
+
+                            String[] result = readLine.split(":");
+                            if(result.length!=2){
+                                throw new IllegalStateException();
+                            }
+                            String keyValue=result[1].trim();
+                            keysArray[keyCount[0]]=keyValue;
+
+                            keyCount[0]+=1;
+                            return;
+                        }else{
+                            //все плохо, так не долно быть
+                            throw new IllegalStateException(unusualResponseErrorText);
+                        }
+                    }
+
+
+                }
+
+            }
+        };
+
+        CliThread cliThread=new CliThread(inputHandler,command);
+        try {
+            cliThread.start(true);
+        }catch (IOException ex){
+            ex.printStackTrace();
+            throw new IllegalStateException(ex);
+        }
+        return keysArrayList;
+
+    }
+
     public void setFingerprint(String fingerprint){
-        throw new NotImplementedException();
+        String error=checkFingerprint(fingerprint);
+        if(error!=null){
+            throw new IllegalArgumentException(error);
+        }
+        this.fingerprint=fingerprint;
     }
 
     public String checkFingerPrint(String fingerprint){
@@ -193,6 +337,7 @@ public class AppSettings {
         this.farmerPublicKey=farmerPublicKey;
     }
 
+    @Deprecated
     public String checkFarmerPublicKey(String farmerPublicKey){
         if(farmerPublicKey==null){
             return "Farmer public key is null(empty)";
@@ -212,6 +357,21 @@ public class AppSettings {
         return null;
 
     }
+    public String checkFingerprint(String fingerprint){
+        if(fingerprint==null){
+            return "fingerprint value is NULL";
+        }
+        if(fingerprint.length()<9){
+            return "fingerprint value low then 9 chars";
+        }
+        if(!fingerprint.matches("[0-9]+")){
+            return "fingerprint value contains not number chars";
+        }
+        return null;
+
+
+    }
+
 
     public void setPoolPublicKey(String poolPublicKey){
         if(checkPoolPublicKey(poolPublicKey)!=null){
@@ -220,6 +380,7 @@ public class AppSettings {
         this.poolPublicKey=poolPublicKey;
     }
 
+    @Deprecated
     public String checkPoolPublicKey(String poolPublicKey){
         if(poolPublicKey==null){
             return "Pool public key is null(empty)";
@@ -239,6 +400,32 @@ public class AppSettings {
         return null;
     }
 
+
+    public int getFingerprintIndex(){
+        return getFingerprintIndex(this.fingerprint);
+    }
+
+    public int getFingerprintIndex(String fingerprint){
+        if(fingerprint==null){
+            return -1;
+        }
+        if(fingerprint.length()==0){
+            return -1;
+        }
+
+        for(int count=0;count<keysArrayList.size();count+=1){
+            String[] keyArray=keysArrayList.get(count);
+            if(keyArray.length!=containsKeyNames.length){
+                throw new IllegalStateException();
+            }
+
+            if(fingerprint.equals(keyArray[FINGERPRINT_INDEX])){
+                return count;
+            }
+        }
+        return -1;
+    }
+
     public void clearChiaFilePathAndVersion(){
         this.detectedChiaVersion=null;
         this.chiaCliFilePath=null;
@@ -251,6 +438,7 @@ public class AppSettings {
     }
 
 
+    @Deprecated
     public boolean isAllDataSetted(){
         if(!isChiaFileSetted()){
             return false;
@@ -261,6 +449,7 @@ public class AppSettings {
         return true;
     }
 
+    @Deprecated
     public boolean isChiaFileSetted(){
         if(this.chiaCliFilePath==null){
             return false;
@@ -271,6 +460,7 @@ public class AppSettings {
         return true;
     }
 
+    @Deprecated
     public boolean isKeysSetted(){
         if(this.farmerPublicKey==null){
             return false;
@@ -281,6 +471,64 @@ public class AppSettings {
         return true;
     }
 
+    public boolean checkActualityOfDAta(){
+        //проверяем в начале путь до файла действителен или нет
+        if(!isChiaCliFilePathActual()) return false;
+        //  ну еще надо проверить указанный ранее fingerprint
+        if(!isFingerprintActual()) return false;
+        //значит все актуально
+        return true;
+    }
+
+    public boolean isChiaCliFilePathActual(){
+        String checkFileError=checkChiaCliFile(chiaCliFilePath);
+        if(checkFileError!=null){
+            return false;
+        }
+        return true;
+    }
+
+    public boolean isFingerprintActual(){
+       try {
+           updateFingerprintAndKeys();
+       }catch (Exception ex){
+           return false;
+       }
+        int fingerprintIndex=getFingerprintIndex(fingerprint);
+        if(fingerprintIndex<0){
+            return false;
+        }
+        return true;
+    }
+
+    public String[] getFingerprintPublicKeysArray(String fingerprint){
+        if(fingerprint==null){
+            return null;
+        }
+        for (int count=0;this.keysArrayList.size()>count;count+=1){
+            String[] keyArrayAtIndex=this.keysArrayList.get(count);
+            if(fingerprint.equals(keyArrayAtIndex[FINGERPRINT_INDEX])){
+                return keyArrayAtIndex;
+            }
+        }
+        return null;
+    }
+
+    public String[] getFingerprintOnlyArray(){
+        int preSize=this.keysArrayList.size();
+        List<String> fingerprintArrayList=new ArrayList<>(preSize); // на такое иду чтобы от других потоков небыло сбоев
+
+        for(int count=0;this.keysArrayList.size()>count;count+=1){
+            String[] entry=keysArrayList.get(count);
+            String fingerprintEntry =entry[AppSettings.FINGERPRINT_INDEX];
+            if(fingerprintEntry==null){
+                throw new IllegalStateException();
+            }
+            fingerprintArrayList.add(fingerprintEntry);
+        }
+        return (String[]) fingerprintArrayList.toArray();
+    }
+
     public void load(){
         Preferences prefs = Preferences.userNodeForPackage(ru.xander.JavaFxChiaPlotterHelper.Helpers.AppSettings.class);
         String defaultValue = null;
@@ -289,11 +537,21 @@ public class AppSettings {
         this.fingerprint = prefs.get(CHIA_FINGERPRINT, defaultValue);
         this.farmerPublicKey = prefs.get(CHIA_FARMER_PUBLIC_KEY, defaultValue);
         this.poolPublicKey = prefs.get(CHIA_POOL_PUBLIC_KEY, defaultValue);
-        if(this.chiaCliFilePath.equals("")) this.chiaCliFilePath=null;
-        if(this.detectedChiaVersion.equals("")) this.detectedChiaVersion=null;
-        if(this.fingerprint.equals("")) this.fingerprint=null;
-        if(this.farmerPublicKey.equals("")) this.farmerPublicKey=null;
-        if(this.poolPublicKey.equals("")) this.poolPublicKey=null;
+        if(this.chiaCliFilePath!=null){
+            if(this.chiaCliFilePath.equals("")) this.chiaCliFilePath=null;
+        }
+        if(this.detectedChiaVersion!=null){
+            if(this.detectedChiaVersion.equals("")) this.detectedChiaVersion=null;
+        }
+        if(this.fingerprint!=null){
+            if(this.fingerprint.equals("")) this.fingerprint=null;
+        }
+        if(this.farmerPublicKey!=null){
+            if(this.farmerPublicKey.equals("")) this.farmerPublicKey=null;
+        }
+        if(this.poolPublicKey!=null){
+            if(this.poolPublicKey.equals("")) this.poolPublicKey=null;
+        }
     }
 
     public void save(){
@@ -316,6 +574,7 @@ public class AppSettings {
         prefs.put(CHIA_FINGERPRINT, fingerprintVal);
         prefs.put(CHIA_FARMER_PUBLIC_KEY, farmerPublicKeyVal);
         prefs.put(CHIA_POOL_PUBLIC_KEY, poolPublicKeyVal);
+
 
 
     }

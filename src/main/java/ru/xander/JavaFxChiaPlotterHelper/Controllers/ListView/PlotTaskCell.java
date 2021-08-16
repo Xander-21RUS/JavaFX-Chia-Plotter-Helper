@@ -9,15 +9,18 @@ import javafx.scene.control.ProgressBar;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.Priority;
-
-public class PlotTaskCell extends ListCell<PlotTaskCell> {
-
-
+import ru.xander.JavaFxChiaPlotterHelper.Controllers.MainWindowController;
+import ru.xander.JavaFxChiaPlotterHelper.Main;
 
 
+public class PlotTaskCell {
 
 
-    HBox hbox = new HBox();
+    private PlotSettingsData plotSettingsData=null;
+
+    public int count=-1;
+
+    public HBox hbox = new HBox();
     Label label = new Label("(empty)");
     Pane pane = new Pane();
     Button paramsButton=new Button("Params");
@@ -31,19 +34,35 @@ public class PlotTaskCell extends ListCell<PlotTaskCell> {
 
     String lastItem;
 
-    public PlotTaskCell() {
+
+
+
+    public PlotTaskCell(PlotSettingsData plotSettingsData) {
         super();
+        if(plotSettingsData==null){
+            throw new IllegalArgumentException();
+        }
+        this.plotSettingsData=plotSettingsData;
         initialization();
+
     }
 
     private void initialization(){
         hbox.setSpacing(20);
         hbox.getChildren().addAll(paramsButton,pane, phaseLabel,lastLogReportLabel,progressBar,logButton,rerunButton,stopButton);
         HBox.setHgrow(pane, Priority.ALWAYS);
+
+        rerunButton.setOnAction(new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent event) {
+                rerunTask();
+            }
+        });
+
         stopButton.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent event) {
-                System.out.println(lastItem + " : " + event);
+                stopTask();
             }
         });
 
@@ -59,19 +78,24 @@ public class PlotTaskCell extends ListCell<PlotTaskCell> {
 
             }
         });
+
+        paramsButton.setOnAction(new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent event) {
+                MainWindowController.currentMainWindowController.showPlotParams(plotSettingsData);
+            }
+        });
     }
 
-    @Override
-    protected void updateItem(PlotTaskCell item, boolean empty) {
-        super.updateItem(item, empty);
-        setText(null);  // No text in label of super class
-        if (empty) {
-            lastItem = null;
-            setGraphic(null);
-        } else {
 
-
-            setGraphic(hbox);
-        }
+    public void rerunTask(){
+        System.out.println("rerun task pressed");
     }
+
+    public void stopTask(){
+        System.out.println("stop task pressed");
+        MainWindowController.currentMainWindowController.removePlotTaskCell(this);
+    }
+
+
 }

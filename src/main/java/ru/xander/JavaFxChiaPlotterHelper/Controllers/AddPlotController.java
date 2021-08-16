@@ -12,6 +12,7 @@ import javafx.stage.DirectoryChooser;
 import javafx.stage.FileChooser;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
+import ru.xander.JavaFxChiaPlotterHelper.Controllers.ListView.PlotSettingsData;
 import ru.xander.JavaFxChiaPlotterHelper.Helpers.AppSettings;
 
 import java.io.File;
@@ -26,10 +27,7 @@ import java.util.function.UnaryOperator;
 public class AddPlotController {
 
     private AppSettings mainAppSettings;
-    private final int minimumRamUsage=512;
-    private final int maximumRamUsage=Integer.MAX_VALUE;
-    private final int minimumThreads=1;
-    private final int maximumThreads=128;
+
 
 
     private ChoiceBox<String> plotSizeChoiceBox;
@@ -219,21 +217,33 @@ public class AddPlotController {
                 String secondTemporaryPath=getSecondTemporaryPath();
                 String finalPath=getFinalPath();
 
-                
+                PlotSettingsData plotSettingsData=new PlotSettingsData(plotSize,buckets,memoryUsage,threads,temporaryPath,useSecondTemporary,secondTemporaryPath,finalPath);
 
-
+                MainWindowController.currentMainWindowController.addPlotTask(plotSettingsData);
+                stage.close();
 
             }
         });
 
-
-
-
-
-
-
     }
 
+
+    public void setParamsModeView(PlotSettingsData plotSettingsData){
+        setPlotSettings(plotSettingsData);
+        plotSizeChoiceBox.setDisable(true);
+        bucketsChoiceBox.setDisable(true);
+        memoryTextField.setDisable(true);
+        threadsChoiceBox.setDisable(true);
+        temporaryDirTextField.setDisable(true);
+        tempDirBrowseButton.setDisable(true);
+        secondTmpDirCheckBox.setDisable(true);
+        secondTmpDirTextField.setDisable(true);
+        secondDirBrowseButton.setDisable(true);
+        finalDirTextField.setDisable(true);
+        finalDirBrowseButton.setDisable(true);
+        cancelButton.setDisable(false);
+        createButton.setDisable(true);
+    }
 
     private boolean checkTemporaryPathAndShowAlert(){
         String temporaryPath=temporaryDirTextField.getText();
@@ -352,7 +362,7 @@ public class AddPlotController {
     }
 
     private void setNumberOfBuckets(int numberOfBuckets){
-        if(numberOfBuckets <16 || 256 >numberOfBuckets){
+        if(numberOfBuckets <PlotSettingsData.minimumBuckets || PlotSettingsData.maximumBuckets <numberOfBuckets){
             throw new IllegalArgumentException();
         }
 
@@ -377,17 +387,17 @@ public class AddPlotController {
     }
 
     private void setRamMaxUsage(int ramMaxUsage){
-        if(ramMaxUsage<minimumRamUsage){
+        if(ramMaxUsage< PlotSettingsData.minimumRamUsage){
             throw new IllegalArgumentException();
         }
         memoryTextField.setText(Integer.toString(ramMaxUsage));
     }
 
     private void setNumberOfThreads(int threads){
-        if(threads<minimumThreads){
+        if(threads<PlotSettingsData.minimumThreads){
             throw new IllegalArgumentException();
         }
-        if(threads>maximumThreads){
+        if(threads>PlotSettingsData.maximumThreads){
             throw new IllegalArgumentException();
         }
         int index=threads-1;
@@ -417,6 +427,21 @@ public class AddPlotController {
             finalPath="";
         }
         finalDirTextField.setText(finalPath);
+    }
+
+    public void setPlotSettings(PlotSettingsData plotSettings){
+        if(plotSettings==null){
+            throw new IllegalArgumentException();
+        }
+        setPlotSize(plotSettings.getPlotSize());
+        setNumberOfBuckets(plotSettings.getBuckets());
+        setRamMaxUsage(plotSettings.getMaxRamUsage());
+        setNumberOfThreads(plotSettings.getThreads());
+        setTemporaryDirectory(plotSettings.getTemporaryPath());
+        setUseSecondTemporary(plotSettings.getUseSecondTemporary());
+        setSecondTemporaryPath(plotSettings.getSecondTemporaryPath());
+        setFinalPath(plotSettings.getFinalPath());
+
     }
 
 

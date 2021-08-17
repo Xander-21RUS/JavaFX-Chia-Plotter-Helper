@@ -526,7 +526,10 @@ public class AppSettings {
             }
             fingerprintArrayList.add(fingerprintEntry);
         }
-        return (String[]) fingerprintArrayList.toArray();
+        String[] returnArray= new String[fingerprintArrayList.size()];
+        fingerprintArrayList.toArray(returnArray);
+        return returnArray;
+
     }
 
     public void load(){

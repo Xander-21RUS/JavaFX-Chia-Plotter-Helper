@@ -94,10 +94,15 @@ public class SettingsController {
 
 
         if(!isChiaPathActual()){
+            // путь до Chia file не актуален!!
             firstState();
         }else if(!isSelectedFingerprintActual()){
             // путь фаила актуальный, но fingerprint не актуален
             secondState();
+            // надо установить путь в TextField
+            // надо установить в Label версию файла
+            setChiaCliPathAndVersionToFields(appSettings);
+
         }else {
             //значит все актуально
             //надо установить путь и ключи
@@ -116,6 +121,8 @@ public class SettingsController {
                 alert.showAndWait();
                 throw new IllegalStateException();
             }
+
+            setFingerprintAndKeys(appSettings);
 
 
         }
@@ -197,7 +204,10 @@ public class SettingsController {
             @Override
             public void handle(ActionEvent event) {
 
+                doneButton.setDisable(true);
                 updateKeys();
+
+
 
                 /*
                 Alert alert = new Alert(Alert.AlertType.WARNING);
@@ -216,6 +226,7 @@ public class SettingsController {
                 if(index<0){
                     farmerPublicKeyTextField.setText("");
                     poolPublicKeyTextField.setText("");
+                    doneButton.setDisable(true);
                     return;
                 }
                 String[] keysArray=tempAppSettings.keysArrayList.get(index);
@@ -223,6 +234,7 @@ public class SettingsController {
                 String poolKey=keysArray[AppSettings.POOL_KEY_INDEX];
                 farmerPublicKeyTextField.setText(farmerKey);
                 poolPublicKeyTextField.setText(poolKey);
+                doneButton.setDisable(false);
             }
         });
 
@@ -501,7 +513,7 @@ public class SettingsController {
         poolPublicKeyLabel.setDisable(false);
         poolPublicKeyTextField.setText("");
         poolPublicKeyTextField.setDisable(false);
-        //doneButton.setDisable(false);
+        doneButton.setDisable(true);
     }
 
     private boolean isChiaPathActual(){
@@ -572,6 +584,18 @@ public class SettingsController {
         return true;
 
 
+    }
+
+    private void setChiaCliPathAndVersionToFields(AppSettings appSettings){
+        String chiaPath= appSettings.getChiaCliFilePath();
+        if(chiaPath==null){
+            chiaPath="";
+        }
+        chiaFileTextField.setText(chiaPath);
+
+        String chiaVersion= appSettings.getDetectedChiaVersion();
+        if(chiaVersion==null) throw new IllegalStateException();
+        this.chiaFileVersionLabel.setText("Chia v" + chiaVersion);
     }
 
 

@@ -96,6 +96,7 @@ public class SettingsController {
         if(!isChiaPathActual()){
             firstState();
         }else if(!isSelectedFingerprintActual()){
+            // путь фаила актуальный, но fingerprint не актуален
             secondState();
         }else {
             //значит все актуально
@@ -511,6 +512,9 @@ public class SettingsController {
         return mainAppSettings.isFingerprintActual();
     }
 
+
+
+
     private boolean setFingerprintAndKeys(AppSettings appSettings){
         if(appSettings==null){
             throw new IllegalArgumentException();
@@ -532,6 +536,8 @@ public class SettingsController {
         String poolKey=fingerprintKeyArray[AppSettings.POOL_KEY_INDEX];
         //String wallet=fingerprintKeyArray[AppSettings.FIRST_WALLET_INDEX];
 
+        if(farmerKey==null || poolKey==null) throw new IllegalStateException();
+
         String[] fingerprintArray=appSettings.getFingerprintOnlyArray();
         int fingerprintIndex= appSettings.getFingerprintIndex(fingerprint);
         if(fingerprintIndex<0){
@@ -541,10 +547,30 @@ public class SettingsController {
             throw new IllegalStateException();
         }
 
+
+        // установка fingerpring в choiceBox
+        // вначале список заполняем
         ObservableList<String> fingerprintObservableList=fingerprintChoiceBox.getItems();
         fingerprintObservableList.clear();
 
-        for(int count = 0 ; )
+        for(int count = 0 ; fingerprintArray.length > count ; count +=1){
+            String fingerprintEntry=fingerprintArray[count];
+            if(fingerprintEntry==null) throw new IllegalStateException();
+            fingerprintObservableList.add(fingerprintEntry);
+        }
+
+        // теперь надо установить индекс. т.е. выбрать fingerprint в choicebox
+        fingerprintChoiceBox.getSelectionModel().select(fingerprintIndex);
+        // провеим на сбой
+        if(!fingerprint.equals(fingerprintChoiceBox.getValue())) throw new IllegalStateException();
+
+        //choicebox всехорошо, осталось заполнить поля ключей
+
+        farmerPublicKeyTextField.setText(farmerKey);
+        poolPublicKeyTextField.setText(poolKey);
+
+        return true;
+
 
     }
 
